@@ -1,0 +1,13 @@
+Revision history for Perl extension DBIx::Replicate.
+
+0.02
+    - Refactor code:
+      * Allow OO notation
+      * Allow pluggable Strategy
+      * Allow discrete Node definitions
+    - Switch to Module::Install
+
+0.01  Tue Jan 29 10:28:14 2008
+	- original version; created by h2xs 1.23 with options
+		-X -n DBIx::Replicate
+

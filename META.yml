@@ -1,0 +1,23 @@
+--- 
+abstract: Synchornizes an SQL table to anther table
+author: 
+  - Kazuho Oku
+distribution_type: module
+generated_by: Module::Install version 0.68
+license: perl
+meta-spec: 
+  url: http://module-build.sourceforge.net/META-spec-v1.3.html
+  version: 1.3
+name: DBIx-Replicate
+no_index: 
+  directory: 
+    - inc
+    - t
+requires: 
+  Carp::Clan: 0
+  Class::Accessor::Fast: 0
+  DBI: 0
+  Exporter: 5.60
+  List::Util: 0
+  UNIVERSAL::require: 0
+version: 0.02
