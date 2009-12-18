@@ -1,10 +1,10 @@
-# $Id: PK.pm 6287 2008-02-06 06:35:36Z kazuho $
+# $Id: PK.pm 22875 2008-11-06 16:18:06Z kazuho $
 
 package DBIx::Replicate::Strategy::PK;
 use strict;
 use warnings;
 use Carp::Clan;
-use List::Util qw/min/;
+use List::Util qw/max/;
 use Time::HiRes qw/time sleep/;
 
 sub new { bless {}, shift }
@@ -23,7 +23,8 @@ sub replicate
     # XXX Refactor later;
     my @columns = @{ $c->columns };
     my $columns_str = join ',', @columns;
-    my $extra_cond = $c->extra_cond ?  sprintf("and %s", $c->extra_cond) : '';
+    my $extra_cond = $c->extra_cond ?  sprintf("and (%s)", $c->extra_cond) : '';
+    my $limit_cond = $c->limit_cond ? sprintf("and (%s)", $c->limit_cond) : '';
     my $sql;
     
     my $block      = $c->block;
@@ -41,7 +42,7 @@ sub replicate
     my ($start_srcconn, $start_destconn) = qw/1 1/;
     while (1) {
         my $start = time;
-        $sql = "select $columns_str from $src_table where $start_srcconn $extra_cond order by $order_by limit $block";
+        $sql = "select $columns_str from $src_table where $start_srcconn $extra_cond $limit_cond order by $order_by limit $block";
         my $rows = $src_conn->selectall_arrayref(
             $sql,
             { Slice => {} },
@@ -63,7 +64,7 @@ sub replicate
                     $dest_conn->quote($rows->[-1]->{$_})
                 } @$pkey,
             ) . ')';
-        $sql = "delete from $dest_table where $start_destconn and not $next_destconn";
+        $sql = "delete from $dest_table where $start_destconn $limit_cond and not $next_destconn";
         $dest_conn->do($sql)
             or die $dest_conn->errstr;
         $sql = "insert into $dest_table ($columns_str) values "
@@ -84,12 +85,12 @@ sub replicate
             or die $dest_conn->errstr;
         $dest_conn->commit
             or die $dest_conn->errstr;
-        sleep(min(time - $start, 0) * (1 - $args->{load}) / $args->{load})
+        sleep(max(time - $start, 0) * (1 - $args->{load}) / $args->{load})
             if $args->{load};
         ($start_srcconn, $start_destconn)
             = ($next_srcconn, $next_destconn);
     }
-    $sql = "delete from $dest_table where $start_destconn";
+    $sql = "delete from $dest_table where $start_destconn $limit_cond";
     $dest_conn->do($sql)
         or die $dest_conn->errstr;
 }
